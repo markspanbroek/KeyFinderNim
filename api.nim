@@ -28,7 +28,7 @@ type
 
     Entry* = object
         line*: string
-        number*: int
+        number*: int32
         score*: float
 
 proc httpGetString(url: string): string =
@@ -39,17 +39,20 @@ proc httpGetJson(url: string): JsonNode =
     var jsonStr = httpGetString(url)
     return parseJson(jsonStr)
 
-proc httpPostJson[T](url: string, request: T): JsonNode = 
+proc httpPostJson[T](url: string, request: T): JsonNode =
     let client = newHttpClient()
     client.headers = newHttpHeaders({ "Content-Type": "application/json" })
     let body = %*request
     let response = client.request(host & url, httpMethod = HttpPost, body = $body)
-    let responseStr = response.body()
-    return parseJson(responseStr)
+    if response.code == HttpCode(200):
+      let responseStr = response.body()
+      return parseJson(responseStr)
+    else:
+      return %nil
 
 proc httpGetKeyStatus*(): KeyStatusResponse =
     return to(httpGetJson("status"), KeyStatusResponse)
-    
+
 proc httpGetLegalCharacters*(): string =
     return httpGetString("characters")
 
