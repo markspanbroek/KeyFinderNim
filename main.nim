@@ -30,15 +30,14 @@ proc randomPopulation: seq[Entry] =
 proc initialize =
   echo "initializing"
   while true:
-    echo "."
     try:
       playerId = join()
       allowedCharacters = httpGetLegalCharacters()
       maxLineLength = httpGetKeyStatus().maxLineLength
       maxNumberOfEntries = httpGetKeyStatus().maxNumberOfEntries
       break
-    except KeyError:
-      discard
+    except CatchableError as error:
+      echo error.msg
 
 proc modulo(a,n: int): int =
   ((a mod n) + n) mod n
@@ -107,6 +106,7 @@ while not population.done():
   try:
     population = evaluate(population)
     echo population.best
-  except KeyError, JsonParsingError, ProtocolError:
+  except CatchableError as error:
+    echo error.msg
     initialize()
     continue
